@@ -9,7 +9,10 @@ import Link from "next/link";
 interface AdminSidebarProps {
   open: boolean;
   onClose: () => void;
-  variant: "permanent" | "temporary";
+  // Nota: `variant` no se usa en el cuerpo del componente (el sidebar es un
+  // div propio, no un MUI Drawer), pero se mantiene en la firma porque quien
+  // lo renderiza lo pasa. Aceptamos los tres valores que usan los callers.
+  variant: "permanent" | "persistent" | "temporary";
   collapsed: boolean;
   setCollapsed: (value: boolean) => void;
 }

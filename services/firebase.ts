@@ -1,6 +1,7 @@
 import { getAuth, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
 import { getFunctions, httpsCallable } from 'firebase/functions'; 
 import { setCookie, destroyCookie } from 'nookies';
+import type { UserCredential } from 'firebase/auth';
 import { app } from './firebaseConfig';
 import { createOrUpdateUserProfile } from './authService';
 import { doc, getDoc,serverTimestamp,setDoc } from 'firebase/firestore';
@@ -14,7 +15,7 @@ const assignAdminRole = async (uid: string) => {
   try {
     const setAdminRoleFunction = httpsCallable(functions, 'setAdminRole');  
     const result = await setAdminRoleFunction({ uid });
-    console.log('Resultado:', result.data.message);  // Mensaje de éxito
+    console.log('Resultado:', (result.data as { message?: string }).message);  // Mensaje de éxito
   } catch (error) {
     console.error('Error al asignar el rol:', error);
   }
@@ -27,6 +28,32 @@ const getUserRoleFromFirestore = async (uid: string) => {
     return userDoc.data()?.role || 'user'; // Retorna el rol, 'user' por defecto si no está definido
   }
   return 'user'; 
+};
+
+// Registro por email y password
+export const registerUser = async (
+  email: string,
+  password: string,
+  displayName: string,
+  username: string
+) => {
+  const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+  const { uid, email: userEmail } = userCredential.user;
+
+  // Guardamos los datos iniciales en Firestore.
+  // No pasamos `createdAt`: lo escribe createOrUpdateUserProfile con
+  // serverTimestamp(), que es lo que se usa en el resto de flujos de auth.
+  await createOrUpdateUserProfile(uid, {
+    email: userEmail,
+    displayName,
+    username,
+    photoURL: '',
+    emailVerified: userCredential.user.emailVerified,
+    role: 'user', // rol por defecto
+    bio: 'Sin descripción',
+  });
+
+  return userCredential;
 };
 
 // Login por email y password

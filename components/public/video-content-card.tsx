@@ -1,3 +1,6 @@
+"use client"
+
+import { useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Leaf, Sprout } from "lucide-react" // Plant-related icons
 
@@ -11,6 +14,74 @@ interface VideoContentCardProps {
   smallText?: string
   videoPoster?: string
   themeColor?: "green" | "pink" | "blue" // Example theme colors for buttons
+}
+
+/**
+ * Vídeo de fondo con carga diferida.
+ *
+ * El problema original: la home montaba 5 <video autoPlay> de golpe y el
+ * navegador descargaba/decodificaba ~100 MB nada más entrar, aunque las
+ * tarjetas estuvieran fuera de pantalla. Eso saturaba red, CPU y memoria
+ * (sobre todo en móvil).
+ *
+ * Ahora solo se pide el vídeo cuando la tarjeta se acerca al viewport
+ * (rootMargin 300px) y se pausa cuando sale de él.
+ */
+function LazyBackgroundVideo({
+  videoSrc,
+  videoPoster,
+  className,
+}: {
+  videoSrc: string
+  videoPoster: string
+  className: string
+}) {
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const [shouldLoad, setShouldLoad] = useState(false)
+  const [isVisible, setIsVisible] = useState(false)
+
+  useEffect(() => {
+    const el = videoRef.current
+    if (!el) return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsVisible(entry.isIntersecting)
+        if (entry.isIntersecting) setShouldLoad(true)
+      },
+      { rootMargin: "300px 0px", threshold: 0.01 },
+    )
+
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
+  useEffect(() => {
+    const el = videoRef.current
+    if (!el || !shouldLoad) return
+
+    if (isVisible) {
+      const playPromise = el.play()
+      if (playPromise !== undefined) playPromise.catch(() => {})
+    } else {
+      el.pause()
+    }
+  }, [isVisible, shouldLoad])
+
+  return (
+    <video
+      ref={videoRef}
+      loop
+      muted
+      playsInline
+      preload="none"
+      className={className}
+      poster={videoPoster}
+    >
+      {shouldLoad && <source src={videoSrc} type="video/mp4" />}
+      Your browser does not support the video tag.
+    </video>
+  )
 }
 
 export default function VideoContentCard({
@@ -47,17 +118,11 @@ export default function VideoContentCard({
 
   return (
     <div className="relative aspect-[4/3] sm:aspect-video w-full rounded-2xl overflow-hidden shadow-xl group bg-gray-100 transition-all duration-300 hover:shadow-2xl transform hover:-translate-y-1">
-      <video
-        autoPlay
-        loop
-        muted
-        playsInline
+      <LazyBackgroundVideo
+        videoSrc={videoSrc}
+        videoPoster={videoPoster}
         className="absolute top-0 left-0 w-full h-full object-cover z-0 transition-transform duration-500 group-hover:scale-110"
-        poster={videoPoster}
-      >
-        <source src={videoSrc} type="video/mp4" />
-        Your browser does not support the video tag.
-      </video>
+      />
       {/* Light overlay for text contrast if needed, or remove if videos are generally light */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent z-10 transition-opacity duration-300 group-hover:from-black/60" />
       {/* Alternative for very light theme: <div className="absolute inset-0 bg-white/10 z-10" /> */}

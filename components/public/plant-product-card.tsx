@@ -2,7 +2,8 @@ import Image from "next/image"
 import Link from "next/link"
 
 interface PlantProductCardProps {
-  imageUrl: string
+  /** Acepta null: si el producto no tiene imagen, se usa el placeholder. */
+  imageUrl: string | null
   name: string
   description: string
   price: number

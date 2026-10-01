@@ -1,8 +1,8 @@
-// middleware.ts
+// proxy.ts (antes middleware.ts — renombrado en Next.js 16)
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
-// Configuramos en qué rutas corre el middleware:
+// Configuramos en qué rutas corre el proxy:
 export const config = {
   matcher: [
     "/admin/:path*",
@@ -13,7 +13,7 @@ export const config = {
   ],
 }
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
   const token = request.cookies.get("token")?.value
 
@@ -27,7 +27,7 @@ export function middleware(request: NextRequest) {
       const loginUrl = request.nextUrl.clone()
       loginUrl.pathname = "/login"
       const res = NextResponse.redirect(loginUrl)
-      res.cookies.delete("token", { path: "/" })
+      res.cookies.set("token", "", { path: "/", maxAge: 0 })
       return res
     }
   }

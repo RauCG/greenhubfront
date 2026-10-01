@@ -28,6 +28,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import Image from "next/image";
 
 interface User {
   id: string;
@@ -99,7 +100,7 @@ export default function UsersAdminPage() {
         emailVerified: raw.emailVerified,
         role: raw.role,
         username: raw.username,
-        photoURL: raw.photoURL || "./log.png",
+        photoURL: raw.photoURL || "/log.webp",
         createdAt:
           raw.createdAt instanceof Timestamp
             ? raw.createdAt.toDate().toISOString()
@@ -248,10 +249,12 @@ export default function UsersAdminPage() {
                   {paginatedUsers.map(u => (
                     <tr key={u.id} className="odd:bg-green-50 hover:bg-gray-100">
                       <td className="p-2">
-                        <img
-                          src={u.photoURL}
-                          onError={e => { e.currentTarget.src = "/log.png"; }}
+                        <Image
+                          src={u.photoURL || "/log.webp"}
+                          onError={e => { e.currentTarget.src = "/log.webp"; }}
                           alt={u.displayName}
+                          width={32}
+                          height={32}
                           className="h-8 w-8 rounded-full"
                         />
                       </td>

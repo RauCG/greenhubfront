@@ -1,17 +1,10 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import {
-  doc,
-  getDoc,
-  collection,
-  getDocs,
-  setDoc,
-  Timestamp,
-} from "firebase/firestore";
+import { doc, getDoc, getDocs, collection, setDoc, Timestamp } from "firebase/firestore";
 import { db } from "@/services/firebaseConfig";
 import AdminSidebar from "@/components/admin/adminSidebar";
-import Header, { CartItem } from "@/components/header-component";
+import Header from "@/components/header-component";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -64,10 +57,6 @@ const productoParam  = decodeURIComponent(rawProducto .replace(/\+/g, " "));
     disponible: "",
     categoria_principal: "",
   });
-
-  // CARRITO
-  const [cartOpen, setCartOpen] = useState(false);
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
 
   // LAYOUT
   const [quantity, setQuantity] = useState(1);
@@ -127,54 +116,8 @@ const productoParam  = decodeURIComponent(rawProducto .replace(/\+/g, " "));
 }, [categoriaParam, productoParam]);
 
 
-  // Cargar carrito
-  useEffect(() => {
-    async function loadCart() {
-      if (isAuthenticated && user) {
-        const userRef = doc(db, "users", user.uid);
-        const snap = await getDocs(collection(userRef, "carrito"));
-        setCartItems(
-          snap.docs.map(d => {
-            const data = d.data() as any;
-            return {
-              productId: data.productoId.path,
-              nombre: data.nombre,
-              imagen: data.imagen,
-              precio: data.precio,
-              cantidad: data.cantidad,
-              total: data.total,
-            };
-          })
-        );
-      } else {
-        const ls = localStorage.getItem("cart");
-        setCartItems(ls ? JSON.parse(ls) : []);
-      }
-    }
-    loadCart();
-  }, [isAuthenticated, user]);
-
-  // Persistir carrito
-  async function saveCart(newItems: CartItem[]) {
-    setCartItems(newItems);
-    if (isAuthenticated && user) {
-      const userRef = doc(db, "users", user.uid);
-      for (const item of newItems) {
-        const id = item.productId.replace(/\//g, "_");
-        await setDoc(doc(userRef, "carrito", id), {
-          productoId: doc(db, ...item.productId.split("/")),
-          nombre: item.nombre,
-          imagen: item.imagen,
-          precio: item.precio,
-          cantidad: item.cantidad,
-          total: item.total,
-          updatedAt: Timestamp.now(),
-        });
-      }
-    } else {
-      localStorage.setItem("cart", JSON.stringify(newItems));
-    }
-  }
+  // El estado del carrito vive en <Header />. Aquí solo se escribe el
+  // documento del carrito en Firestore; Header se suscribe y se actualiza solo.
 
   // Añadir al carrito
  async function handleAddToCart() {
@@ -238,33 +181,10 @@ const productoParam  = decodeURIComponent(rawProducto .replace(/\+/g, " "));
     { merge: true }
   );
 
-  // 8) Abrimos el panel
-  setCartOpen(true);
+  // 8) El panel del carrito lo abre/refleja <Header /> mediante su suscripción.
+
 }
 
-
-  // Actualizar cantidad (o eliminar si llega a 0)
-  function updateQty(pid: string, delta: number) {
-    const updated = cartItems
-      .map(i =>
-        i.productId === pid
-          ? {
-              ...i,
-              cantidad: Math.max(0, i.cantidad + delta),
-              total: Math.max(0, i.cantidad + delta) * i.precio,
-            }
-          : i
-      )
-      .filter(i => i.cantidad > 0);
-    saveCart(updated);
-  }
-
-  // Eliminar item
-  function removeItem(pid: string) {
-    saveCart(cartItems.filter(i => i.productId !== pid));
-  }
-
-  const cartTotal = cartItems.reduce((sum, i) => sum + i.total, 0);
 
   // Ajustar contenedor cuando el sidebar esté abierto
   const contentClass = !isSidebarOpen
@@ -284,18 +204,12 @@ const productoParam  = decodeURIComponent(rawProducto .replace(/\+/g, " "));
       />
 
       <div className={`flex-1 ${contentClass} transition-all duration-300`}>
+        {/* El carrito lo gestiona Header por dentro. */}
         <Header
           collapsed={collapsed}
           isSidebarOpen={isSidebarOpen}
           isMobileMenuOpen={false}
           setIsMobileMenuOpen={() => {}}
-          cartOpen={cartOpen}
-          setCartOpen={setCartOpen}
-          cartItems={cartItems}
-          updateQty={updateQty}
-          removeItem={removeItem}
-          cartTotal={cartTotal}
-          onCheckout={() => router.push("/checkout")}
         />
 
         {/* DETALLE DEL PRODUCTO */}
