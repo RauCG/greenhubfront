@@ -87,10 +87,11 @@ export default function CheckoutPage() {
       return;
     }
     if (!user) return;
+    const userId = user.uid; // TS no estrecha `user` dentro de la función async
 
     async function loadAll() {
       setLoading(true);
-      const userRef = doc(db, "users", user.uid);
+      const userRef = doc(db, "users", userId);
 
       // Cargar direcciones
       const addrSnap = await getDocs(collection(userRef, "direcciones"));
@@ -279,9 +280,16 @@ export default function CheckoutPage() {
             key={item.productId}
             className="flex border border-gray-300 rounded-lg p-4 items-center hover:shadow-md transition-transform transform hover:-translate-y-0.5"
           >
+            {/* `imagen` viene de Firestore con un host arbitrario, así que se mantiene
+                <img> en vez de next/image (evita depender de remotePatterns).
+                lazy + async evita bloquear el render inicial. */}
             <img
               src={item.imagen}
               alt={item.nombre}
+              width={64}
+              height={64}
+              loading="lazy"
+              decoding="async"
               className="h-16 w-16 object-cover rounded mr-4"
             />
             <div className="flex-1">

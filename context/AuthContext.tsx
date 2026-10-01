@@ -6,6 +6,7 @@ import React, {
   useContext,
   useState,
   useEffect,
+  useMemo,
   ReactNode
 } from "react";
 import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
@@ -58,8 +59,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // Mientras carga, puedes retornar null o un loader
 
+  // Memoizar el valor evita que cada cambio de estado re-renderice todo el árbol
+  // de componentes Suscritos a useAuth().
+  const value = useMemo(
+    () => ({ user, isAuthenticated, isAdmin }),
+    [user, isAuthenticated, isAdmin]
+  );
+
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, isAdmin }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

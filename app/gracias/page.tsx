@@ -43,10 +43,10 @@ export default function ThanksPage() {
       router.replace("/login");
       return;
     }
-    
+    const userId = user.uid; // TS no estrecha `user` dentro de la función async
 
     async function finalizeOrder() {
-      const userRef = doc(db, "users", user.uid);
+      const userRef = doc(db, "users", userId);
       const cartDocRef = doc(userRef, "carrito", "carrito");
       const cartSnap = await getDoc(cartDocRef);
 
@@ -154,9 +154,14 @@ export default function ThanksPage() {
               key={item.productId}
               className="flex items-center border border-gray-200 rounded-lg p-4"
             >
+              {/* `imagen` viene de Firestore: <img> + lazy/async en vez de next/image. */}
               <img
                 src={item.imagen}
                 alt={item.nombre}
+                width={64}
+                height={64}
+                loading="lazy"
+                decoding="async"
                 className="h-16 w-16 object-cover rounded mr-4"
               />
               <div className="flex-1">

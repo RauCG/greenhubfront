@@ -4,19 +4,14 @@ import type React from "react"
 
 import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Search, ShoppingBag, Play, Pause, Menu, Heart, User, ChevronRight } from "lucide-react"
 import VideoContentCard from "@/components/public/video-content-card"
 import Footer from "@/components/footer-component"
 import Link from "next/link"
 import AdminSidebar from "@/components/admin/adminSidebar"
-import Header, { CartItem } from "@/components/header-component"
+import Header from "@/components/header-component"
 
 import { useIntersectionObserver } from "@/hooks/use-intersection-observer" // Import the hook
 import { useAuth } from "@/context/AuthContext";  // Asegúrate de importar el hook useAuth
-import { AuthProvider } from "@/context/AuthContext"
-import router from "next/router"
-import { collection, doc, getDocs, setDoc, Timestamp } from "firebase/firestore"
-import { usePathname } from "next/navigation"
 
 type ProductCardInfo = {
   imageSrc: string
@@ -66,7 +61,7 @@ const videoSectionsData: VideoSectionInfo[] = [
     title: "El Jardín Secreto Iluminado",
     description: "Descubre plantas raras que brillan con luz propia y transforman tu espacio.",
     primaryButtonText: "Explorar Magia",
-    videoPoster: "/glowing-flowers-dark-background.png",
+    videoPoster: "/glowing-flowers-dark-background.webp",
     themeColor: "pink",
   },
   {
@@ -76,7 +71,7 @@ const videoSectionsData: VideoSectionInfo[] = [
     description: "Nuestras flores más frescas, entregadas con el cuidado que merecen.",
     primaryButtonText: "Ver Flores Frescas",
     secondaryButtonText: "Suscripciones",
-    videoPoster: "/water-drops-on-petals.png",
+    videoPoster: "/water-drops-on-petals.webp",
     themeColor: "blue",
   },
   {
@@ -86,7 +81,7 @@ const videoSectionsData: VideoSectionInfo[] = [
     description:
       "Trae la serenidad del bosque a tu hogar con nuestra colección de plantas silvestres y arreglos naturales.",
     primaryButtonText: "Descubrir Colección",
-    videoPoster: "/lush-forest-path.png",
+    videoPoster: "/lush-forest-path.webp",
     themeColor: "green",
   },
   {
@@ -95,7 +90,7 @@ const videoSectionsData: VideoSectionInfo[] = [
     title: "Donde los Sueños Florecen",
     description: "Una selección mística de flores que inspiran y cautivan la imaginación.",
     primaryButtonText: "Ver Arreglos",
-    videoPoster: "/magical-sparkling-flowers.png",
+    videoPoster: "/magical-sparkling-flowers.webp",
     themeColor: "pink",
   },
   {
@@ -105,7 +100,7 @@ const videoSectionsData: VideoSectionInfo[] = [
     description: "Celebra la calidez y los colores vibrantes de las flores que aman el sol.",
     primaryButtonText: "Comprar Solares",
     secondaryButtonText: "Guía de Cuidados",
-    videoPoster: "/golden-hour-flowers.png",
+    videoPoster: "/golden-hour-flowers.webp",
     themeColor: "green",
   },
 ]
@@ -131,9 +126,7 @@ const AnimatedSection: React.FC<{ children: React.ReactNode; className?: string;
 
 export default function MetaLandingPage() {
   const videoRef = useRef<HTMLVideoElement>(null)
-  const [isPlaying, setIsPlaying] = useState(true)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const [headerScrolled, setHeaderScrolled] = useState(false)
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
@@ -152,9 +145,6 @@ export default function MetaLandingPage() {
 
   useEffect(() => {
     if (videoRef.current) videoRef.current.muted = true
-    const handleScroll = () => setHeaderScrolled(window.scrollY > 20)
-    window.addEventListener("scroll", handleScroll)
-    return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
   useEffect(() => {
@@ -165,75 +155,8 @@ export default function MetaLandingPage() {
 
 
 
-  const [cartOpen, setCartOpen] = useState(false);
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [quantity, setQuantity] = useState(1); // si lo necesitas aquí
-
-  // Carga inicial del carrito (Firestore o localStorage)
-  useEffect(() => {
-    async function loadCart() {
-      if (isAuthenticated && user) {
-        const userRef = doc(db, "users", user.uid);
-        const snap = await getDocs(collection(userRef, "carrito"));
-        setCartItems(snap.docs.map(d => {
-          const data = d.data() as any;
-          return {
-            productId: data.productoId.path,
-            nombre: data.nombre,
-            imagen: data.imagen,
-            precio: data.precio,
-            cantidad: data.cantidad,
-            total: data.total,
-          };
-        }));
-      } else {
-        const ls = localStorage.getItem("cart");
-        setCartItems(ls ? JSON.parse(ls) : []);
-      }
-    }
-    loadCart();
-  }, [isAuthenticated, user]);
-
-  // Guarda el carrito (Firestore o localStorage)
-  async function saveCart(newItems: CartItem[]) {
-    setCartItems(newItems);
-    if (isAuthenticated && user) {
-      const userRef = doc(db, "users", user.uid);
-      for (const item of newItems) {
-        const id = item.productId.replace(/\//g, "_");
-        await setDoc(doc(userRef, "carrito", id), {
-          productoId: doc(db, ...item.productId.split("/")),
-          nombre: item.nombre,
-          imagen: item.imagen,
-          precio: item.precio,
-          cantidad: item.cantidad,
-          total: item.total,
-          updatedAt: Timestamp.now(),
-        });
-      }
-    } else {
-      localStorage.setItem("cart", JSON.stringify(newItems));
-    }
-  }
-
-  // Actualiza cantidad o elimina si llega a 0
-  const updateQty = (pid: string, delta: number) => {
-    const updated = cartItems
-      .map(i => i.productId === pid
-        ? { ...i, cantidad: Math.max(1, i.cantidad + delta), total: Math.max(1, i.cantidad + delta) * i.precio }
-        : i
-      )
-      .filter(i => i.cantidad > 0);
-    saveCart(updated);
-  };
-
-  // Elimina un ítem
-  const removeItem = (pid: string) => {
-    saveCart(cartItems.filter(i => i.productId !== pid));
-  };
-
-  // Total del carrito
-  const cartTotal = cartItems.reduce((sum, i) => sum + i.total, 0);
+  // El estado del carrito vive en <Header /> (suscripción propia a Firestore
+  // o localStorage), así que esta página no necesita duplicarlo.
 
   return (
     
@@ -246,18 +169,13 @@ export default function MetaLandingPage() {
         setCollapsed={setCollapsed}
       />
       <div className={`flex-1 ${contentClass} transition-all duration-300`}>
+        {/* El carrito lo gestiona Header por dentro (suscripción propia a
+            Firestore). Esta página ya no le pasa estado de carrito. */}
         <Header
           collapsed={collapsed}
           isSidebarOpen={isSidebarOpen}
           isMobileMenuOpen={isMobileMenuOpen}
           setIsMobileMenuOpen={setIsMobileMenuOpen}
-          cartOpen={cartOpen}
-          setCartOpen={setCartOpen}
-          cartItems={cartItems}
-          updateQty={updateQty}
-          removeItem={removeItem}
-          cartTotal={cartTotal}
-          onCheckout={() => router.push("/checkout")}
         />
 
 

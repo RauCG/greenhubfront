@@ -4,10 +4,18 @@ import { useState } from 'react';
 import { Box, Typography, Button, Paper, Stack, IconButton } from '@mui/material';
 import Image from 'next/image';
 import Link from 'next/link';
-import LoginForm from '@/components/auth/login-form-component';
-import RegisterForm from '@/components/auth/register-form-component';
+import dynamic from 'next/dynamic';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { HomeIcon } from 'lucide-react';
+
+// Los formularios solo se necesitan cuando el usuario interactúa. Se cargan en
+// el cliente bajo demanda para no enviarlos en el bundle inicial de /login.
+const LoginForm = dynamic(() => import('@/components/auth/login-form-component'), {
+  ssr: false,
+});
+const RegisterForm = dynamic(() => import('@/components/auth/register-form-component'), {
+  ssr: false,
+});
 
 export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -32,7 +40,7 @@ export default function LoginPage() {
         }}
       >
         <Stack spacing={2} alignItems="center">
-          <Image src="/log.png" alt="Logo" width={120} height={120} />
+          <Image src="/log.webp" alt="Logo" width={120} height={120} />
           <Typography
             variant="h4"
             fontWeight="bold"

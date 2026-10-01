@@ -78,7 +78,7 @@ export default function ProfileComponent() {
       </Typography>
 
       <Avatar
-        src={photoURL || '/default-avatar.png'} // usa un avatar por defecto si no hay foto
+        src={photoURL || '/default-avatar.webp'} // usa un avatar por defecto si no hay foto
         sx={{ width: 100, height: 100 }}
       />
 

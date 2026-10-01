@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
   Search,
   Menu,
@@ -64,10 +64,17 @@ export default function Header({
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Ref a Firestore carrito
-  const carritoDocRef = isAuthenticated && user
-    ? doc(db, "users", user.uid, "carrito", "carrito")
-    : null;
+  // Ref a Firestore carrito.
+  // Debe ir en useMemo: `doc()` devuelve un objeto nuevo en cada render, y sin
+  // memoizarlo el useEffect de abajo se resuscribía a Firestore en cada render
+  // (incluida cada pulsación de teclado en el buscador).
+  const carritoDocRef = useMemo(
+    () =>
+      isAuthenticated && user
+        ? doc(db, "users", user.uid, "carrito", "carrito")
+        : null,
+    [isAuthenticated, user]
+  );
 
   // Suscripción al carrito
   useEffect(() => {
@@ -79,6 +86,8 @@ export default function Header({
           return;
         }
         const arr = Array.isArray(snap.data().productos) ? snap.data().productos : [];
+        // Un getDoc() por item del carrito. Se resuelven en paralelo con
+        // Promise.all. (El batch getAll() se eliminó en Firebase v12.)
         const detalles = await Promise.all(arr.map(async (entry: any) => {
           const prodSnap = await getDoc(entry.productoId);
           const pd = prodSnap.data() as any;
@@ -175,19 +184,23 @@ export default function Header({
     if (allProducts.length) return;
     if (loadedRef.current) return;
     const cats = ["arboles","macetas","plantas","semillas","decoracion","fertilizantes","herramientas"];
+    // Promise.all: las 7 categorías se piden en paralelo (1 ida y vuelta en vez
+    // de 7 secuenciales).
+    const snaps = await Promise.all(
+      cats.map((cat) => getDocs(collection(db, "productos", cat, "tipos")))
+    );
     const loaded: ProductSuggestion[] = [];
-    for (const cat of cats) {
-      const snap = await getDocs(collection(db, "productos", cat, "tipos"));
+    snaps.forEach((snap, i) => {
       snap.forEach(d => {
         const data = d.data() as any;
         loaded.push({
           nombre: data.nombre,
           precio: data.precio,
           imagen: Array.isArray(data.imagen) ? data.imagen[0] : data.imagen,
-          categoryFolder: cat,
+          categoryFolder: cats[i],
         });
       });
-    }
+    });
     setAllProducts(loaded);
     loadedRef.current = true;
   };
@@ -279,6 +292,10 @@ export default function Header({
                       <img
                         src={prod.imagen}
                         alt={prod.nombre}
+                        width={40}
+                        height={40}
+                        loading="lazy"
+                        decoding="async"
                         className="h-10 w-10 rounded mr-3 object-cover"
                       />
                       <div className="flex-1 overflow-hidden">
@@ -416,6 +433,10 @@ export default function Header({
                   <img
                     src={item.imagen}
                     alt={item.nombre}
+                    width={48}
+                    height={48}
+                    loading="lazy"
+                    decoding="async"
                     className="h-12 w-12 rounded mr-3 object-cover"
                   />
                   <div className="flex-1">

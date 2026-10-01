@@ -118,9 +118,11 @@ export default function StatsChart() {
         {/* Contenido: gráfico */}
         <CardContent sx={{ pt: 1, pb: 2 }}>
           <Box sx={{ width: '100%', height: isMobile ? 300 : 400 }}>
+            {/* ResponsiveContainer exige un único hijo: el gráfico se resuelve
+                en una cadena ternaria y se le pasa como único hijo. */}
             <ResponsiveContainer>
               {/* BARRAS */}
-              {chartType === 'bar' && (
+              {chartType === 'bar' ? (
                 <BarChart
                   data={displayData}
                   layout={isMobile ? 'vertical' : 'horizontal'}
@@ -144,10 +146,7 @@ export default function StatsChart() {
                   <Legend verticalAlign="top" />
                   <Bar dataKey="sold" fill="#5B8FF9" radius={[8,8,0,0]} />
                 </BarChart>
-              )}
-
-              {/* PASTEL */}
-              {chartType === 'pie' && (
+              ) : chartType === 'pie' ? (
                 <PieChart>
                   <Pie
                     data={displayData}
@@ -164,10 +163,7 @@ export default function StatsChart() {
                   <Tooltip />
                   <Legend />
                 </PieChart>
-              )}
-
-              {/* ÁREA */}
-              {chartType === 'area' && (
+              ) : chartType === 'area' ? (
                 <AreaChart data={displayData}>
                   <defs>
                     <linearGradient id="colorData" x1="0" y1="0" x2="0" y2="1">
@@ -186,10 +182,7 @@ export default function StatsChart() {
                     fill="url(#colorData)"
                   />
                 </AreaChart>
-              )}
-
-              {/* LÍNEA */}
-              {chartType === 'line' && (
+              ) : chartType === 'line' ? (
                 <LineChart data={displayData}>
                   <XAxis dataKey="name" />
                   <YAxis />
@@ -202,10 +195,7 @@ export default function StatsChart() {
                     strokeWidth={2}
                   />
                 </LineChart>
-              )}
-
-              {/* RADIAL */}
-              {chartType === 'radial' && (
+              ) : chartType === 'radial' ? (
                 <RadialBarChart
                   data={displayData}
                   innerRadius="10%"
@@ -214,10 +204,8 @@ export default function StatsChart() {
                   endAngle={0}
                 >
                   <RadialBar
-                    minAngle={15}
                     label={{ position: 'insideStart', fill: '#fff' }}
                     background
-                    clockWise
                     dataKey="sold"
                   />
                   <Tooltip />
@@ -228,6 +216,15 @@ export default function StatsChart() {
                     align="right"
                   />
                 </RadialBarChart>
+              ) : (
+                <BarChart data={displayData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" stroke="#888" />
+                  <YAxis stroke="#888" />
+                  <Tooltip />
+                  <Legend verticalAlign="top" />
+                  <Bar dataKey="sold" fill="#5B8FF9" radius={[8,8,0,0]} />
+                </BarChart>
               )}
             </ResponsiveContainer>
           </Box>

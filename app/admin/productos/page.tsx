@@ -24,6 +24,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import Image from "next/image";
 import {
   Select,
   SelectTrigger,
@@ -122,7 +123,7 @@ export default function ProductsAdminPage() {
           id: d.id,
           nombre: data.nombre,
           descripcion: data.descripcion,
-          imagen: data.imagen || ["./log.png"],
+          imagen: data.imagen || ["/log.webp"],
           precio: data.precio,
           originalPrice: data.originalPrice,
           destacado: data.destacado,
@@ -389,12 +390,14 @@ export default function ProductsAdminPage() {
                   {paginated.map((p) => (
                     <tr key={p.id} className="odd:bg-green-50 hover:bg-gray-100">
                       <td className="p-2">
-                        <img
-                          src={p.imagen[0] || "/imagenes/log.png"}
+                        <Image
+                          src={p.imagen[0] || "/log.webp"}
                           onError={(e) => {
-                            e.currentTarget.src = "/imagenes/log.png";
+                            e.currentTarget.src = "/log.webp";
                           }}
                           alt={p.nombre}
+                          width={40}
+                          height={40}
                           className="h-10 w-10 rounded"
                         />
                       </td>

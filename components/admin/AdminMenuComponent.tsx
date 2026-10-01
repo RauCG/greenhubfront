@@ -5,11 +5,16 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { AppBar, Toolbar, Button, Avatar, Typography, Box, IconButton, useMediaQuery } from '@mui/material';
 import { Person, Menu } from '@mui/icons-material';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { getAuth, onAuthStateChanged, type User } from 'firebase/auth';
 import { app } from '@/services/firebaseConfig';
 
-export default function AdminMenuComponent({ pageTitle, onMenuClick }) {
-  const [user, setUser] = useState(null);
+interface AdminMenuComponentProps {
+  pageTitle: string;
+  onMenuClick?: () => void;
+}
+
+export default function AdminMenuComponent({ pageTitle, onMenuClick }: AdminMenuComponentProps) {
+  const [user, setUser] = useState<User | null>(null);
   const isMobile = useMediaQuery('(max-width:900px)');
 
   useEffect(() => {
@@ -29,14 +34,12 @@ export default function AdminMenuComponent({ pageTitle, onMenuClick }) {
           </IconButton>
         )}
         <Image
-          src="/logo2.png"
+          src="/logo2.webp"
           alt="Logo"
-          width={0}
-          height={0}
-          sizes="100vw"
-          style={{ width: '150px', height: 'auto', objectFit: 'contain' }}
+          width={150}
+          height={40}
+          style={{ width: 150, height: 'auto', objectFit: 'contain' }}
           priority
-          unoptimized
         />
         
         {!isMobile && (

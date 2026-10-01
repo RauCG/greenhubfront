@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Button, TextField, Typography, Divider, Stack } from '@mui/material';
 import { registerUser } from '@/services/firebase';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 export default function RegisterForm() {
   const [name, setName] = useState('');
@@ -100,10 +101,11 @@ export default function RegisterForm() {
           },
         }}
         startIcon={
-          <img
+          <Image
             src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg"
             alt="Google Logo"
-            style={{ width: 20, height: 20 }}
+            width={20}
+            height={20}
           />
         }
       >

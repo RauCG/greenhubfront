@@ -98,8 +98,10 @@ export default function OrdersChart() {
         {/* Contenido del gráfico */}
         <CardContent sx={{ pt: 1, pb: 2 }}>
           <Box sx={{ width: '100%', height: isMobile ? 300 : 400 }}>
+            {/* ResponsiveContainer exige exactamente un hijo: el gráfico se
+                resuelve en una variable y se le pasa como único hijo. */}
             <ResponsiveContainer>
-              {chartType === 'pie' && (
+              {chartType === 'pie' ? (
                 <PieChart>
                   <Pie
                     data={data}
@@ -116,9 +118,7 @@ export default function OrdersChart() {
                   <Tooltip />
                   <Legend />
                 </PieChart>
-              )}
-
-              {chartType === 'radar' && (
+              ) : chartType === 'radar' ? (
                 <RadarChart data={data}>
                   <PolarGrid />
                   <PolarAngleAxis dataKey="status" />
@@ -132,9 +132,7 @@ export default function OrdersChart() {
                   <Tooltip />
                   <Legend />
                 </RadarChart>
-              )}
-
-              {chartType === 'area' && (
+              ) : chartType === 'area' ? (
                 <AreaChart data={data}>
                   <defs>
                     <linearGradient id="ordersColor" x1="0" y1="0" x2="0" y2="1">
@@ -153,9 +151,7 @@ export default function OrdersChart() {
                     fill="url(#ordersColor)"
                   />
                 </AreaChart>
-              )}
-
-              {chartType === 'line' && (
+              ) : chartType === 'line' ? (
                 <LineChart data={data}>
                   <XAxis dataKey="status" />
                   <YAxis />
@@ -168,9 +164,7 @@ export default function OrdersChart() {
                     strokeWidth={2}
                   />
                 </LineChart>
-              )}
-
-              {chartType === 'radial' && (
+              ) : chartType === 'radial' ? (
                 <RadialBarChart
                   data={data}
                   innerRadius="10%"
@@ -179,10 +173,8 @@ export default function OrdersChart() {
                   endAngle={0}
                 >
                   <RadialBar
-                    minAngle={15}
                     label={{ position: 'insideStart', fill: '#fff' }}
                     background
-                    clockWise
                     dataKey="quantity"
                   />
                   <Tooltip />
@@ -193,6 +185,23 @@ export default function OrdersChart() {
                     align="right"
                   />
                 </RadialBarChart>
+              ) : (
+                <PieChart>
+                  <Pie
+                    data={data}
+                    dataKey="quantity"
+                    nameKey="status"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={isMobile ? 80 : 120}
+                  >
+                    {data.map((_, i) => (
+                      <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend />
+                </PieChart>
               )}
             </ResponsiveContainer>
           </Box>
