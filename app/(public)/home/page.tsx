@@ -139,12 +139,32 @@ export default function MetaLandingPage() {
 
 
   const { isAuthenticated, isAdmin,user } = useAuth(); // Accede al contexto de autenticación
+  // Antes se pedía con `dpr_2` (doble resolución) y servía ~48 MB. Ahora se
+  // limita el ancho y se deja que Cloudinary comprima (f_auto, q_auto).
   const heroVideoUrl =
-    "https://d.media.kavehome.com/video/upload/w_auto,ar_1.7777777777777777,dpr_2,f_auto/v1748876467/home-page-videos/a-sumers-table-slide-desktop.es_ES.mp4"
+    "https://d.media.kavehome.com/video/upload/w_1280,f_auto,q_auto/v1748876467/home-page-videos/a-sumers-table-slide-desktop.es_ES.mp4"
 
-
+  // Reproduce el hero solo mientras está en pantalla y lo pausa al hacer
+  // scroll para no seguir decodificando vídeo innecesariamente.
   useEffect(() => {
-    if (videoRef.current) videoRef.current.muted = true
+    const el = videoRef.current
+    if (!el) return
+    el.muted = true
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          const playPromise = el.play()
+          if (playPromise !== undefined) playPromise.catch(() => {})
+        } else {
+          el.pause()
+        }
+      },
+      { threshold: 0.25 },
+    )
+
+    observer.observe(el)
+    return () => observer.disconnect()
   }, [])
 
   useEffect(() => {
