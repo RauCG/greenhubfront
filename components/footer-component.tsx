@@ -50,13 +50,13 @@ const socialLinks = [
 ]
 
 const paymentMethods = [
-  { src: "/payment-methods/visa.png", alt: "Visa" },
-  { src: "/payment-methods/mastercard.png", alt: "Mastercard" },
-  { src: "/payment-methods/amex.png", alt: "American Express" },
-  { src: "/payment-methods/paypal.png", alt: "PayPal" },
-  { src: "/payment-methods/klarna.png", alt: "Klarna" },
-  { src: "/payment-methods/apple-pay.png", alt: "Apple Pay" },
-  { src: "/payment-methods/google-pay.png", alt: "Google Pay" },
+  { src: "/payment-methods/visa.webp", alt: "Visa" },
+  { src: "/payment-methods/mastercard.webp", alt: "Mastercard" },
+  { src: "/payment-methods/amex.webp", alt: "American Express" },
+  { src: "/payment-methods/paypal.webp", alt: "PayPal" },
+  { src: "/payment-methods/klarna.webp", alt: "Klarna" },
+  { src: "/payment-methods/apple-pay.webp", alt: "Apple Pay" },
+  { src: "/payment-methods/google-pay.webp", alt: "Google Pay" },
 ]
 
 const legalLinks = [

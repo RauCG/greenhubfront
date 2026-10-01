@@ -16,8 +16,8 @@ export const metadata: Metadata = {
   title: 'GreenHub',
   description: 'GreenHub: Tu tienda de plantas y flores.',
   icons: {
-    icon: '/favicono.png',
-    apple: '/favicono.png',
+    icon: '/log.webp',
+    apple: '/log.webp',
   },
   generator: 'greenhub.dev',
 };

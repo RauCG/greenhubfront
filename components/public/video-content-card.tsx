@@ -14,6 +14,12 @@ interface VideoContentCardProps {
   smallText?: string
   videoPoster?: string
   themeColor?: "green" | "pink" | "blue" // Example theme colors for buttons
+  /**
+   * Si es `true`, el vídeo se reproduce automáticamente al entrar en el
+   * viewport (y se pausa al salir). Por defecto `false`: se muestra solo el
+   * póster y el vídeo permanece pausado (no descarga nada).
+   */
+  active?: boolean
 }
 
 /**
@@ -24,23 +30,27 @@ interface VideoContentCardProps {
  * tarjetas estuvieran fuera de pantalla. Eso saturaba red, CPU y memoria
  * (sobre todo en móvil).
  *
- * Ahora solo se pide el vídeo cuando la tarjeta se acerca al viewport
- * (rootMargin 300px) y se pausa cuando sale de él.
+ * Ahora, por defecto, solo se muestra el póster y el vídeo no se descarga.
+ * Si `active` es `true`, se pide el vídeo al acercarse al viewport
+ * (rootMargin 300px) y se pausa al salir de él.
  */
 function LazyBackgroundVideo({
   videoSrc,
   videoPoster,
   className,
+  active,
 }: {
   videoSrc: string
   videoPoster: string
   className: string
+  active: boolean
 }) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const [shouldLoad, setShouldLoad] = useState(false)
   const [isVisible, setIsVisible] = useState(false)
 
   useEffect(() => {
+    if (!active) return
     const el = videoRef.current
     if (!el) return
 
@@ -54,11 +64,11 @@ function LazyBackgroundVideo({
 
     observer.observe(el)
     return () => observer.disconnect()
-  }, [])
+  }, [active])
 
   useEffect(() => {
     const el = videoRef.current
-    if (!el || !shouldLoad) return
+    if (!el || !active || !shouldLoad) return
 
     if (isVisible) {
       const playPromise = el.play()
@@ -66,7 +76,7 @@ function LazyBackgroundVideo({
     } else {
       el.pause()
     }
-  }, [isVisible, shouldLoad])
+  }, [active, isVisible, shouldLoad])
 
   return (
     <video
@@ -78,7 +88,7 @@ function LazyBackgroundVideo({
       className={className}
       poster={videoPoster}
     >
-      {shouldLoad && <source src={videoSrc} type="video/mp4" />}
+      {active && shouldLoad && <source src={videoSrc} type="video/mp4" />}
       Your browser does not support the video tag.
     </video>
   )
@@ -94,6 +104,7 @@ export default function VideoContentCard({
   smallText,
   videoPoster = "/placeholder.svg?width=600&height=400&text=Loading+Video",
   themeColor = "green",
+  active = false,
 }: VideoContentCardProps) {
   const themeClasses = {
     green: {
@@ -121,6 +132,7 @@ export default function VideoContentCard({
       <LazyBackgroundVideo
         videoSrc={videoSrc}
         videoPoster={videoPoster}
+        active={active}
         className="absolute top-0 left-0 w-full h-full object-cover z-0 transition-transform duration-500 group-hover:scale-110"
       />
       {/* Light overlay for text contrast if needed, or remove if videos are generally light */}
